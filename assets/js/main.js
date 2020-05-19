@@ -1,299 +1,181 @@
-/*
-	Multiverse by HTML5 UP
-	html5up.net | @n33co
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
-*/
+;(function () {
+	
+	'use strict';
 
-(function($) {
 
-	skel.breakpoints({
-		xlarge: '(max-width: 1680px)',
-		large: '(max-width: 1280px)',
-		medium: '(max-width: 980px)',
-		small: '(max-width: 736px)',
-		xsmall: '(max-width: 480px)'
-	});
 
-	$(function() {
+	var isMobile = {
+		Android: function() {
+			return navigator.userAgent.match(/Android/i);
+		},
+			BlackBerry: function() {
+			return navigator.userAgent.match(/BlackBerry/i);
+		},
+			iOS: function() {
+			return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+		},
+			Opera: function() {
+			return navigator.userAgent.match(/Opera Mini/i);
+		},
+			Windows: function() {
+			return navigator.userAgent.match(/IEMobile/i);
+		},
+			any: function() {
+			return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());
+		}
+	};
 
-		var	$window = $(window),
-			$body = $('body'),
-			$wrapper = $('#wrapper');
+	var fullHeight = function() {
 
-		// Hack: Enable IE workarounds.
-			if (skel.vars.IEVersion < 12)
-				$body.addClass('ie');
+		// if ( !isMobile.any() ) {
+			$('.js-fullheight').css('height', $(window).height());
+			$(window).resize(function(){
+				$('.js-fullheight').css('height', $(window).height());
+			});
+		// }
 
-		// Touch?
-			if (skel.vars.mobile)
-				$body.addClass('touch');
+	};
 
-		// Transitions supported?
-			if (skel.canUse('transition')) {
+	var parallax = function() {
+		$(window).stellar({
+			horizontalScrolling: false,
+			hideDistantElements: false, 
+			responsive: true
 
-				// Add (and later, on load, remove) "loading" class.
-					$body.addClass('loading');
+		});
+	};
 
-					$window.on('load', function() {
-						window.setTimeout(function() {
-							$body.removeClass('loading');
-						}, 100);
+	var testimonialCarousel = function(){
+		var owl = $('.owl-carousel-fullwidth');
+		owl.owlCarousel({
+			items: 1,
+		    loop: true,
+		    margin: 0,
+		    responsiveClass: true,
+		    nav: false,
+		    dots: true,
+		    smartSpeed: 500,
+		    autoHeight: true
+		});
+	};
+
+
+	// Animations
+
+	var contentWayPoint = function() {
+		var i = 0;
+		$('.animate-box').waypoint( function( direction ) {
+
+			if( direction === 'down' && !$(this.element).hasClass('animated') ) {
+				
+				i++;
+
+				$(this.element).addClass('item-animate');
+				setTimeout(function(){
+
+					$('body .animate-box.item-animate').each(function(k){
+						var el = $(this);
+						setTimeout( function () {
+							var effect = el.data('animate-effect');
+							if ( effect === 'fadeIn') {
+								el.addClass('fadeIn animated');
+							} else if ( effect === 'fadeInLeft') {
+								el.addClass('fadeInLeft animated');
+							} else if ( effect === 'fadeInRight') {
+								el.addClass('fadeInRight animated');
+							} else {
+								el.addClass('fadeInUp animated');
+							}
+
+							el.removeClass('item-animate');
+						},  k * 200, 'easeInOutExpo' );
 					});
-
-				// Prevent transitions/animations on resize.
-					var resizeTimeout;
-
-					$window.on('resize', function() {
-
-						window.clearTimeout(resizeTimeout);
-
-						$body.addClass('resizing');
-
-						resizeTimeout = window.setTimeout(function() {
-							$body.removeClass('resizing');
-						}, 100);
-
-					});
-
+					
+				}, 100);
+				
 			}
 
-		// Scroll back to top.
-			$window.scrollTop(0);
+		} , { offset: '85%' } );
+	};
 
-		// Fix: Placeholder polyfill.
-			$('form').placeholder();
+	var counter = function() {
+		$('.js-counter').countTo({
+			 formatter: function (value, options) {
+	      return value.toFixed(options.decimals);
+	    },
+		});
+	};
 
-		// Panels.
-			var $panels = $('.panel');
+	var counterWayPoint = function() {
+		if ($('#counter-animate').length > 0 ) {
+			$('#counter-animate').waypoint( function( direction ) {
+										
+				if( direction === 'down' && !$(this.element).hasClass('animated') ) {
+					setTimeout( counter , 400);					
+					$(this.element).addClass('animated');
+						
+				}
+			} , { offset: '90%' } );
+		}
+	};
 
-			$panels.each(function() {
+	var burgerMenu = function() {
 
-				var $this = $(this),
-					$toggles = $('[href="#' + $this.attr('id') + '"]'),
-					$closer = $('<div class="closer" />').appendTo($this);
+		$('.js-fh5co-nav-toggle').on('click', function(event){
+			event.preventDefault();
+			var $this = $(this);
 
-				// Closer.
-					$closer
-						.on('click', function(event) {
-							$this.trigger('---hide');
-						});
+			if ($('body').hasClass('offcanvas')) {
+				$this.removeClass('active');
+				$('body').removeClass('offcanvas');	
+			} else {
+				$this.addClass('active');
+				$('body').addClass('offcanvas');	
+			}
+		});
 
-				// Events.
-					$this
-						.on('click', function(event) {
-							event.stopPropagation();
-						})
-						.on('---toggle', function() {
 
-							if ($this.hasClass('active'))
-								$this.triggerHandler('---hide');
-							else
-								$this.triggerHandler('---show');
 
-						})
-						.on('---show', function() {
+	};
 
-							// Hide other content.
-								if ($body.hasClass('content-active'))
-									$panels.trigger('---hide');
+	// Click outside of offcanvass
+	var mobileMenuOutsideClick = function() {
 
-							// Activate content, toggles.
-								$this.addClass('active');
-								$toggles.addClass('active');
+		$(document).click(function (e) {
+	    var container = $("#fh5co-aside, .js-fh5co-nav-toggle");
+	    if (!container.is(e.target) && container.has(e.target).length === 0) {
 
-							// Activate body.
-								$body.addClass('content-active');
+	    	if ( $('body').hasClass('offcanvas') ) {
 
-						})
-						.on('---hide', function() {
+    			$('body').removeClass('offcanvas');
+    			$('.js-fh5co-nav-toggle').removeClass('active');
+			
+	    	}
+	    	
+	    }
+		});
 
-							// Deactivate content, toggles.
-								$this.removeClass('active');
-								$toggles.removeClass('active');
+		$(window).scroll(function(){
+			if ( $('body').hasClass('offcanvas') ) {
 
-							// Deactivate body.
-								$body.removeClass('content-active');
+    			$('body').removeClass('offcanvas');
+    			$('.js-fh5co-nav-toggle').removeClass('active');
+			
+	    	}
+		});
 
-						});
+	};
 
-				// Toggles.
-					$toggles
-						.removeAttr('href')
-						.css('cursor', 'pointer')
-						.on('click', function(event) {
-
-							event.preventDefault();
-							event.stopPropagation();
-
-							$this.trigger('---toggle');
-
-						});
-
-			});
-
-			// Global events.
-				$body
-					.on('click', function(event) {
-
-						if ($body.hasClass('content-active')) {
-
-							event.preventDefault();
-							event.stopPropagation();
-
-							$panels.trigger('---hide');
-
-						}
-
-					});
-
-				$window
-					.on('keyup', function(event) {
-
-						if (event.keyCode == 27
-						&&	$body.hasClass('content-active')) {
-
-							event.preventDefault();
-							event.stopPropagation();
-
-							$panels.trigger('---hide');
-
-						}
-
-					});
-
-		// Header.
-			var $header = $('#header');
-
-			// Links.
-				$header.find('a').each(function() {
-
-					var $this = $(this),
-						href = $this.attr('href');
-
-					// Internal link? Skip.
-						if (!href
-						||	href.charAt(0) == '#')
-							return;
-
-					// Redirect on click.
-						$this
-							.removeAttr('href')
-							.css('cursor', 'pointer')
-							.on('click', function(event) {
-
-								event.preventDefault();
-								event.stopPropagation();
-
-								window.location.href = href;
-
-							});
-
-				});
-
-		// Footer.
-			var $footer = $('#footer');
-
-			// Copyright.
-			// This basically just moves the copyright line to the end of the *last* sibling of its current parent
-			// when the "medium" breakpoint activates, and moves it back when it deactivates.
-				$footer.find('.copyright').each(function() {
-
-					var $this = $(this),
-						$parent = $this.parent(),
-						$lastParent = $parent.parent().children().last();
-
-					skel
-						.on('+medium', function() {
-							$this.appendTo($lastParent);
-						})
-						.on('-medium', function() {
-							$this.appendTo($parent);
-						});
-
-				});
-
-		// Main.
-			var $main = $('#main');
-
-			// Thumbs.
-				$main.children('.thumb').each(function() {
-
-					var	$this = $(this),
-						$image = $this.find('.image'), $image_img = $image.children('img'),
-						x;
-
-					// No image? Bail.
-						if ($image.length == 0)
-							return;
-
-					// Image.
-					// This sets the background of the "image" <span> to the image pointed to by its child
-					// <img> (which is then hidden). Gives us way more flexibility.
-
-						// Set background.
-							$image.css('background-image', 'url(' + $image_img.attr('src') + ')');
-
-						// Set background position.
-							if (x = $image_img.data('position'))
-								$image.css('background-position', x);
-
-						// Hide original img.
-							$image_img.hide();
-
-					// Hack: IE<11 doesn't support pointer-events, which means clicks to our image never
-					// land as they're blocked by the thumbnail's caption overlay gradient. This just forces
-					// the click through to the image.
-						if (skel.vars.IEVersion < 11)
-							$this
-								.css('cursor', 'pointer')
-								.on('click', function() {
-									$image.trigger('click');
-								});
-
-				});
-
-			// Poptrox.
-				$main.poptrox({
-					baseZIndex: 20000,
-					caption: function($a) {
-
-						var s = '';
-
-						$a.nextAll().each(function() {
-							s += this.outerHTML;
-						});
-
-						return s;
-
-					},
-					fadeSpeed: 300,
-					onPopupClose: function() { $body.removeClass('modal-active'); },
-					onPopupOpen: function() { $body.addClass('modal-active'); },
-					overlayOpacity: 0,
-					popupCloserText: '',
-					popupHeight: 150,
-					popupLoaderText: '',
-					popupSpeed: 300,
-					popupWidth: 150,
-					selector: '.thumb > a.image',
-					usePopupCaption: true,
-					usePopupCloser: true,
-					usePopupDefaultStyling: false,
-					usePopupForceClose: true,
-					usePopupLoader: true,
-					usePopupNav: true,
-					windowMargin: 50
-				});
-
-				// Hack: Set margins to 0 when 'xsmall' activates.
-					skel
-						.on('-xsmall', function() {
-							$main[0]._poptrox.windowMargin = 50;
-						})
-						.on('+xsmall', function() {
-							$main[0]._poptrox.windowMargin = 0;
-						});
-
+	// Document on load.
+	$(function(){
+		fullHeight();
+		parallax();
+		testimonialCarousel();
+		contentWayPoint();
+		counterWayPoint();
+		burgerMenu();
+		mobileMenuOutsideClick();
 	});
 
-})(jQuery);
+
+}());
